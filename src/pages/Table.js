@@ -1,11 +1,23 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import StarContext from '../context/StarContext';
 
 export default function Table() {
   const { starsData } = useContext(StarContext);
+  const [filterStar, setFilterText] = useState('');
+
+  const filterStarName = starsData.filter((star) => star.name.toLowerCase()
+    .includes(filterStar.toLowerCase()));
 
   return (
     <div>
+      <input
+        type="text"
+        name="filterStar"
+        data-testid="name-filter"
+        value={ filterStar }
+        onChange={ (e) => setFilterText(e.target.value) }
+        placeholder="Digite o nome do planeta"
+      />
       <table>
         <thead>
           <tr>
@@ -25,7 +37,7 @@ export default function Table() {
           </tr>
         </thead>
         <tbody>
-          {starsData.map((star, index) => (
+          {filterStarName.map((star, index) => (
             <tr key={ index }>
               <td>{star.name}</td>
               <td>{star.rotation_period}</td>
