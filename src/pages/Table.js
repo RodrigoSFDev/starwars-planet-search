@@ -7,39 +7,45 @@ export default function Table() {
   const [filterColumn, setFilterColumn] = useState('population');
   const [filterComparison, setFilterComparison] = useState('maior que');
   const [filterValue, setFilterValue] = useState(0);
-  const [aFilter, setAFilter] = useState(false);
+  const [aFilter, setAFilter] = useState(true);
+  const [listFilter, setListFilter] = useState([]);
 
   const filterStarName = starsData.filter((star) => star.name.toLowerCase()
     .includes(filterText.toLowerCase())).filter((star) => {
-    if (!aFilter) return star;
+    if (aFilter) return star;
     if (filterComparison === 'maior que') {
-      return star[filterColumn] > Number(filterValue);
+      return +star[filterColumn] > +filterValue;
     }
     if (filterComparison === 'menor que') {
-      return star[filterColumn] < Number(filterValue);
+      return +star[filterColumn] < +filterValue;
     }
     if (filterComparison === 'igual a') {
-      return star[filterColumn] === filterValue;
+      return +star[filterColumn] === +filterValue;
     }
     return true;
+  }).filter((star) => {
+    if (listFilter.length === 0) return star;
+    return listFilter.every((filter) => {
+      switch (filter.comparison) {
+      case 'maior que':
+        return +star[filter.column] > +filter.value;
+      case 'menor que':
+        return +star[filter.column] < +filter.value;
+      case 'igual a':
+        return +star[filter.column] === +filter.value;
+      default:
+        return true;
+      }
+    });
   });
-
-  /*   const outroFilter = filterStarName.filter((star) => {
-    if (filterComparison === 'maior que') {
-      return star[filterColumn] > Number(filterValue);
-    }
-    if (filterComparison === 'menor que') {
-      return star[filterColumn] < Number(filterValue);
-    }
-    if (filterComparison === 'igual a') {
-      return star[filterColumn] === Number(filterValue);
-    }
-    return true;
-  });
-
-  console.log('====================================');
-  console.log(outroFilter);
-  console.log('===================================='); */
+  const handlerFilter = () => {
+    setListFilter([...listFilter, {
+      column: filterColumn,
+      comparison: filterComparison,
+      value: filterValue,
+    }]);
+    setAFilter(false);
+  };
 
   return (
     <div>
@@ -83,12 +89,34 @@ export default function Table() {
         <button
           type="button"
           data-testid="button-filter"
-          onClick={ () => setAFilter(true) }
+          onClick={ handlerFilter }
         >
           Filtrar
 
         </button>
       </div>
+      {listFilter.map((filter, index) => (
+        <div key={ index }>
+          <p>
+            {filter.column}
+            {' '}
+            {filter.comparison}
+            {' '}
+            {filter.value}
+          </p>
+          <button
+            onClick={ () => {
+              const newList = [...listFilter];
+              newList.splice(index, 1);
+              const nList = [...newList];
+              setListFilter(nList);
+            } }
+          >
+            x
+
+          </button>
+        </div>
+      ))}
       <table>
         <thead>
           <tr>
