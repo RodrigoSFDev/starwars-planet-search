@@ -60,6 +60,16 @@ export default function Table() {
       return newFilters;
     });
   };
+  const handleRemoveAll = () => {
+    setListFilter([]);
+    setOptionsColumn([
+      'population',
+      'orbital_period',
+      'diameter',
+      'rotation_period',
+      'surface_water',
+    ]);
+  };
 
   const filteredData = applyFilters();
 
@@ -116,7 +126,7 @@ export default function Table() {
         </button>
       </div>
       {listFilter.map((filter, index) => (
-        <div key={ index }>
+        <div data-testid="filter" key={ index }>
           <p>
             {filter.column}
             {' '}
@@ -132,6 +142,13 @@ export default function Table() {
           </button>
         </div>
       ))}
+      <button
+        data-testid="button-remove-filters"
+        onClick={ handleRemoveAll }
+      >
+        Remover
+
+      </button>
       <table>
         <thead>
           <tr>
