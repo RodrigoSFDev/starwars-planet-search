@@ -5,6 +5,13 @@ export default function Table() {
   const { starsData } = useContext(StarContext);
   const [filterText, setFilterText] = useState('');
   const [filterColumn, setFilterColumn] = useState('population');
+  const [optionsColumn, setOptionsColumn] = useState([
+    'population',
+    'orbital_period',
+    'diameter',
+    'rotation_period',
+    'surface_water',
+  ]);
   const [filterComparison, setFilterComparison] = useState('maior que');
   const [filterValue, setFilterValue] = useState(0);
   const [aFilter, setAFilter] = useState(true);
@@ -64,11 +71,15 @@ export default function Table() {
           data-testid="column-filter"
           onChange={ (e) => setFilterColumn(e.target.value) }
         >
-          <option value="population">population</option>
-          <option value="orbital_period">orbital_period</option>
-          <option value="diameter">diameter</option>
-          <option value="rotation_period">rotation_period</option>
-          <option value="surface_water">surface_water</option>
+          {optionsColumn.map((option, index) => (
+            <option
+              key={ index }
+              id={ index }
+              value={ option }
+            >
+              {option}
+            </option>
+          ))}
         </select>
         <select
           value={ filterComparison }
