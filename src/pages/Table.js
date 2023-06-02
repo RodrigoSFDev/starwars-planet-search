@@ -4,7 +4,6 @@ import StarContext from '../context/StarContext';
 export default function Table() {
   const { starsData } = useContext(StarContext);
   const [filterText, setFilterText] = useState('');
-  const [filterColumn, setFilterColumn] = useState('population');
   const [optionsColumn, setOptionsColumn] = useState([
     'population',
     'orbital_period',
@@ -12,47 +11,57 @@ export default function Table() {
     'rotation_period',
     'surface_water',
   ]);
+  const [filterColumn, setFilterColumn] = useState(optionsColumn[0]);
   const [filterComparison, setFilterComparison] = useState('maior que');
   const [filterValue, setFilterValue] = useState(0);
-  const [aFilter, setAFilter] = useState(true);
   const [listFilter, setListFilter] = useState([]);
 
-  const filterStarName = starsData.filter((star) => star.name.toLowerCase()
-    .includes(filterText.toLowerCase())).filter((star) => {
-    if (aFilter) return star;
-    if (filterComparison === 'maior que') {
-      return +star[filterColumn] > +filterValue;
-    }
-    if (filterComparison === 'menor que') {
-      return +star[filterColumn] < +filterValue;
-    }
-    if (filterComparison === 'igual a') {
-      return +star[filterColumn] === +filterValue;
-    }
-    return true;
-  }).filter((star) => {
-    if (listFilter.length === 0) return star;
-    return listFilter.every((filter) => {
-      switch (filter.comparison) {
-      case 'maior que':
-        return +star[filter.column] > +filter.value;
-      case 'menor que':
-        return +star[filter.column] < +filter.value;
-      case 'igual a':
-        return +star[filter.column] === +filter.value;
-      default:
-        return true;
-      }
+  const applyFilters = () => {
+    let filteredData = starsData.filter((star) => star.name.toLowerCase()
+      .includes(filterText.toLowerCase()));
+
+    listFilter.forEach((filter) => {
+      const { column, comparison, value } = filter;
+
+      filteredData = filteredData.filter((star) => {
+        switch (comparison) {
+        case 'maior que':
+          return +star[column] > +value;
+        case 'menor que':
+          return +star[column] < +value;
+        case 'igual a':
+          return +star[column] === +value;
+        default:
+          return true;
+        }
+      });
     });
-  });
-  const handlerFilter = () => {
-    setListFilter([...listFilter, {
+
+    return filteredData;
+  };
+
+  const handleFilterClick = () => {
+    const newFilter = {
       column: filterColumn,
       comparison: filterComparison,
       value: filterValue,
-    }]);
-    setAFilter(false);
+    };
+    setListFilter((prevFilters) => [...prevFilters, newFilter]);
+    setOptionsColumn(optionsColumn.filter((option) => option !== filterColumn));
+    setFilterColumn(optionsColumn[0]);
+    setFilterComparison('maior que');
+    setFilterValue(0);
   };
+
+  const handleFilterRemove = (index) => {
+    setListFilter((prevFilters) => {
+      const newFilters = [...prevFilters];
+      newFilters.splice(index, 1);
+      return newFilters;
+    });
+  };
+
+  const filteredData = applyFilters();
 
   return (
     <div>
@@ -100,7 +109,7 @@ export default function Table() {
         <button
           type="button"
           data-testid="button-filter"
-          onClick={ handlerFilter }
+          onClick={ handleFilterClick }
         >
           Filtrar
 
@@ -116,12 +125,7 @@ export default function Table() {
             {filter.value}
           </p>
           <button
-            onClick={ () => {
-              const newList = [...listFilter];
-              newList.splice(index, 1);
-              const nList = [...newList];
-              setListFilter(nList);
-            } }
+            onClick={ () => handleFilterRemove(index) }
           >
             x
 
@@ -147,7 +151,7 @@ export default function Table() {
           </tr>
         </thead>
         <tbody>
-          {filterStarName.map((star, index) => (
+          {filteredData.map((star, index) => (
             <tr key={ index }>
               <td>{star.name}</td>
               <td>{star.rotation_period}</td>
