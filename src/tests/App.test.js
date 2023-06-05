@@ -1,178 +1,176 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { StarContext } from '../context/StarContext'; 
+import { render, screen, waitFor } from '@testing-library/react';
 import StarProvider from '../context/StarProvider';
-import Table from '../pages/Table';
 import App from '../App';
 import testData from '../../cypress/mocks/testData';
+import { act } from 'react-dom/test-utils';
 import userEvent from '@testing-library/user-event';
+
 
 describe('Teste Aplicação 30%', () => {
   beforeEach(() => {
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      json: async () => (testData),
+    jest.spyOn(global, 'fetch');
+    global.fetch.mockResolvedValue({
+      json: jest.fn().mockResolvedValue(testData),
     });
-  });
-  it('Teste se a page faz uma requisição a API e renderiza uma tabela', async () => {
+
     render(
       <StarProvider> 
       <App />
     </StarProvider>
-    )
-    // teste de requisisão a API
-    expect(fetch).toBeCalledTimes(1);
-    const loading = screen.getByText(/Carregando.../i)
-    expect(loading).toBeInTheDocument()
-    await waitForElementToBeRemoved(() => screen.queryByText(/Carregando.../i));
-    //inputs e button  
-    screen.getByRole('textbox')
+    );
+    });
 
-    const columnSelect = screen.getByTestId('column-filter');
-    const column = columnSelect.value;
-    expect(column).toBe('population');
+    afterEach(() => {
+      jest.restoreAllMocks();
+  });
+  it('teste se renderiza os input e buttons na tela', async () => {
+
+    await waitFor(()=>  screen.getByRole('button', {name: /filtrar/i}), {timeout: 4000})
+    expect(fetch).toHaveBeenCalled();
+    screen.getByRole('textbox');
+    screen.getAllByRole('combobox')[0];
+    screen.getAllByRole('combobox')[1];
+    screen.getByRole('spinbutton');
+    screen.getByRole('button', {name: /remover filtros/i})
+
+
+  })
+  it('teste renderização da tabela', async () => {
+    
+    await waitFor(()=>  screen.getByText(/Hoth/i),{timeout:4000});
+/*     delete testData.results[0].residents;
+    const table = screen.getByRole('table');
+    const header = screen.getAllByRole('columnheader', { container: table });
+    
+    expect(header).toHaveLength(13);
+    
+    Object.keys(testData.results[0]).forEach((key, index) => {
+      expect(header[index].textContent).toBe(key);
+      esse é outro modo de fazer o mesmo que o de baixo, só que de forma dinamica.
+    }) */
+    
+    screen.getByRole('columnheader', { name: /name/i });
+    screen.getByRole('columnheader', { name: /rotation_period/i });
+    screen.getByRole('columnheader', { name: /orbital_period/i });
+    screen.getByRole('columnheader', { name: /diameter/i });
+    screen.getByRole('columnheader', { name: /climate/i });
+    screen.getByRole('columnheader', { name: /gravity/i });
+    screen.getByRole('columnheader', { name: /terrain/i });
+    screen.getByRole('columnheader', { name: /surface_water/i });
+    screen.getByRole('columnheader', { name: /population/i });
+    screen.getByRole('columnheader', { name: /films/i });
+    screen.getByRole('columnheader', { name: /created/i });
+    screen.getByRole('columnheader', { name: /edited/i });
+
+    const rows = screen.getAllByRole('row')
+    expect(rows).toHaveLength(11);
+    screen.getByText(/Tatooine/i);
+    screen.getByText(/Yavin IV/i);
+    screen.getByText(/Naboo/i);
+    screen.getByText(/26/i);
+    screen.getByText(/118000/i);
+    screen.getByText(/frozen/i);
+    screen.getByText(/gas giant/i);
+    
+
+  });
+  it('teste de filtros', async () => {
+    await waitFor(() => screen.getByText(/Hoth/i),{timeout:5000});
   
-    const comparisonSelect = screen.getByTestId('comparison-filter');
-    const value = comparisonSelect.value;
-    expect(value).toBe('maior que');
-
-    screen.getByRole('spinbutton')
-    screen.getByRole('button', {  name: /filter/i})
-    // reader da table
-    screen.getByRole('columnheader', {  name: /name/i})
-    screen.getByRole('columnheader', {  name: /rotation_period/i})
-    screen.getByRole('columnheader', {  name: /orbital_period/i})
-    screen.getByRole('columnheader', {  name: /diameter/i})
-    screen.getByRole('columnheader', {  name: /climate/i})
-    screen.getByRole('columnheader', {  name: /gravity/i})
-    screen.getByRole('columnheader', {  name: /terrain/i})
-    screen.getByRole('columnheader', {  name: /surface_water/i})
-    screen.getByRole('columnheader', {  name: /population/i})
-    screen.getByRole('columnheader', {  name: /films/i})
-    screen.getByRole('columnheader', {  name: /created/i})
-    screen.getByRole('columnheader', {  name: /edited/i})
-    // celulas da table
-    screen.getByRole('cell', {  name: /tatooine/i})
-    screen.getByRole('columnheader', {  name: /rotation_period/i})
     
-  });
-  it('teste se é possivel filtar a tabela', async () => {
-    render(
-      <StarProvider> 
-      <App />
-    </StarProvider>
-    )
-    const loading = screen.getByText(/Carregando.../i)
-    expect(loading).toBeInTheDocument()
-    await waitForElementToBeRemoved(() => screen.queryByText(/Carregando.../i));
-
-        //inputs 
-        const filterByName = screen.getByRole('textbox')
-
-        userEvent.type(filterByName, 'h');
-        screen.getByRole('cell', {  name: /hoth/i})
-        screen.getByRole('cell', {  name: /549/i})
-        screen.getByRole('cell', {  name: /7200/i})
-        screen.getByRole('cell', {  name: /frozen/i})
-        screen.getByRole('cell', {  name: /1\.1 standard/i})
-
-        screen.getByRole('cell', {  name: /dagobah/i})
-        screen.getByRole('cell', {  name: /341/i})
-        screen.getByRole('cell', {  name: /8900/i})
-        screen.getByRole('cell', {  name: /murky/i})
-        screen.getByRole('cell', {  name: /n\/a/i})
-  })
-  it('teste se é possivel aplicar um filtro na tabela menor que', async () => {
-    render(
-      <StarProvider> 
-      <App />
-    </StarProvider>
-    )
-    const loading = screen.getByText(/Carregando.../i)
-    expect(loading).toBeInTheDocument()
-    await waitForElementToBeRemoved(() => screen.queryByText(/Carregando.../i));
-    //inputs e button
-    const columnSelect = screen.getByTestId('column-filter');
-        const column = columnSelect.value;
-        expect(column).toBe('population');
-      
-        const comparisonSelect = screen.getByTestId('comparison-filter');
-        const value = comparisonSelect.value;
-        expect(value).toBe('maior que');
+    screen.getByText(/Hoth/i);
+    screen.getByText(/Bespin/i);
+    screen.getByText(/Endor/i);
+    const inputText = screen.getByRole('textbox');
     
-        const size = screen.getByRole('spinbutton');
-        const btn = screen.getByRole('button', {  name: /filter/i});
-        userEvent.selectOptions(columnSelect, 'population');
-        userEvent.selectOptions(comparisonSelect, 'menor que');
-        userEvent.type(size, '8000');
-        userEvent.click(btn)
-        screen.getByRole('cell', {  name: /yavin iv/i})
-        screen.getByRole('cell', {  name: /24/i})
-        screen.getByRole('cell', {  name: /4818/i})
-        screen.getByRole('cell', {  name: /10200/i})
-        screen.getByRole('cell', {  name: /temperate, tropical/i})
-  })
-  it('teste se é possivel aplicar um filtro na tabela, maior que', async () => {
-    render(
-      <StarProvider> 
-      <App />
-    </StarProvider>
-    )
-    const loading = screen.getByText(/Carregando.../i)
-    expect(loading).toBeInTheDocument()
-    await waitForElementToBeRemoved(() => screen.queryByText(/Carregando.../i));
-    //inputs e button
-    const columnSelect = screen.getByTestId('column-filter');
-        const column = columnSelect.value;
-        expect(column).toBe('population');
-      
-        const comparisonSelect = screen.getByTestId('comparison-filter');
-        const value = comparisonSelect.value;
-        expect(value).toBe('maior que');
-    
-        const size = screen.getByRole('spinbutton');
-        const btn = screen.getByRole('button', {  name: /filter/i});
-        userEvent.selectOptions(columnSelect, 'diameter');
-        userEvent.selectOptions(comparisonSelect, 'maior que');
-        userEvent.type(size, '12500');
-        userEvent.click(btn)
-        screen.getByRole('cell', {  name: /bespin/i})
-        screen.getByRole('cell', {  name: /118000/i})
+    act(() => {
+      userEvent.type(inputText, 'Endor')
+    });
+    screen.getByText(/Endor/i)
+  expect(screen.queryByText(/hoth/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/bespin/i)).not.toBeInTheDocument();
+    act(() => {
+      userEvent.clear(inputText);
+    })
+    const rows = screen.getAllByRole('row')
+    expect(rows).toHaveLength(11);
 
-        screen.getByRole('cell', {  name: /kamino/i})
-        screen.getByRole('cell', {  name: /19720/i})
+  const filterColumn = screen.getAllByRole('combobox')[0];
+  const comparison = screen.getAllByRole('combobox')[1];
+  const spinValue = screen.getByRole('spinbutton');
+  const btn = screen.getByRole('button', {name: /filtrar/i})
+
+  act(() => {
+    userEvent.selectOptions(filterColumn, 'population');
   })
-  it('teste se é possivel aplicar um filtro na tabela de diametro e removelo no botão remover todos os filtros', async () => {
-    render(
-      <StarProvider> 
-      <App />
-    </StarProvider>
-    )
-    const loading = screen.getByText(/Carregando.../i)
-    expect(loading).toBeInTheDocument()
-    await waitForElementToBeRemoved(() => screen.queryByText(/Carregando.../i));
-    //inputs e button
-    const columnSelect = screen.getByTestId('column-filter');
-        const column = columnSelect.value;
-        expect(column).toBe('population');
-      
-        const comparisonSelect = screen.getByTestId('comparison-filter');
-        const value = comparisonSelect.value;
-        expect(value).toBe('maior que');
-    
-        const size = screen.getByRole('spinbutton');
-        const btn = screen.getByRole('button', {  name: /filter/i});
-        userEvent.selectOptions(columnSelect, 'diameter');
-        userEvent.selectOptions(comparisonSelect, 'maior que');
-        userEvent.type(size, '12500');
-        userEvent.click(btn)
-        screen.getByRole('cell', {  name: /bespin/i})
-        screen.getByRole('cell', {  name: /118000/i})
-      //lista de filtro
-        const filter = screen.getByRole('button', {  name: /x/i})
-        const btnRemoreAllFilter = screen.getByRole('button', {  name: /remover filtros/i})
-        expect(filter).toBeInTheDocument();
-        userEvent.click(btnRemoreAllFilter);
-        expect(filter).not.toBeInTheDocument();
-        screen.getByRole('cell', {  name: /tatooine/i})
+  act(() => {
+    userEvent.selectOptions(comparison, 'maior que');
   })
+  act(() => {
+    userEvent.type(spinValue, '200000');
+  })
+  act(() => {
+    userEvent.click(btn);
+  })
+
+  screen.getByText(/Endor/i)
+  screen.getByText(/Bespin/i)
+  expect(screen.queryByText(/hoth/i)).not.toBeInTheDocument();
+
+  act(() => {
+    userEvent.selectOptions(filterColumn, 'orbital_period');
+  })
+  act(() => {
+    userEvent.selectOptions(comparison, 'menor que');
+  })
+  act(() => {
+    userEvent.type(spinValue, '500');
+  })
+  act(() => {
+    userEvent.click(btn);
+  })
+  screen.getByText(/Endor/i)
+  expect(screen.queryByText(/Bespin/i)).not.toBeInTheDocument();
+
+  act(() => {
+    userEvent.selectOptions(filterColumn, 'diameter');
+  })
+  act(() => {
+    userEvent.selectOptions(comparison, 'igual a');
+  })
+  act(() => {
+    userEvent.type(spinValue, '4900');
+  })
+  act(() => {
+    userEvent.click(btn);
+  })
+
+  screen.getByText(/Endor/i)
+  expect(screen.queryByText(/Bespin/i)).not.toBeInTheDocument();
+
+  const [,,btnX] = screen.getAllByRole('button', {name: /x/i})
+
+  act(() => {
+    userEvent.click(btnX);
+  })
+  screen.getByText(/Endor/i)
+  screen.getByText(/Coruscant/i)
+  screen.getByText(/Kamino/i)
+  expect(screen.queryByText(/Bespin/i)).not.toBeInTheDocument();
+
+  const removeAllFilter = screen.getByRole('button', {name: /remover filtros/i})
+
+  act(() => {
+    userEvent.click(removeAllFilter);
+  })
+
+  const rows2 = screen.getAllByRole('row')
+  expect(rows2).toHaveLength(11);
+  screen.getByText(/Endor/i)
+  screen.getByText(/Coruscant/i)
+  screen.getByText(/Kamino/i)
+  })
+
+
 })

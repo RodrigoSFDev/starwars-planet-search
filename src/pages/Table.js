@@ -29,10 +29,8 @@ export default function Table() {
           return +star[column] > +value;
         case 'menor que':
           return +star[column] < +value;
-        case 'igual a':
-          return +star[column] === +value;
         default:
-          return true;
+          return +star[column] === +value;
         }
       });
     });
@@ -142,13 +140,16 @@ export default function Table() {
           </button>
         </div>
       ))}
-      <button
-        data-testid="button-remove-filters"
-        onClick={ handleRemoveAll }
-      >
-        Remover
+      <div>
 
-      </button>
+        <button
+          data-testid="button-remove-filters"
+          onClick={ handleRemoveAll }
+        >
+          Remover filtros
+
+        </button>
+      </div>
       <table>
         <thead>
           <tr>

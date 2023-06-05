@@ -15,9 +15,7 @@ export default function StarProvider({ children }) {
     };
     fetchStars();
   }, []);
-  console.log('====================================');
-  console.log(starsData);
-  console.log('====================================');
+
   return (
     <StarContext.Provider value={ { starsData } }>
       <div>
